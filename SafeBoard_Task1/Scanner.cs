@@ -1,18 +1,24 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace SafeBoard_Task1
 {
     public class Scanner
     {
-        public ScannerRule[] Rules { get; }
+        public ScannerRule[] Rules { get; set; }
 
         public ReportInfo ReportInfo { get; private set; }
 
+        public Scanner()
+        {
+            ReportInfo = new ReportInfo();
+        }
+
         public Scanner(ScannerRule[] rules)
+            :this()
         {
             Rules = rules;
-            ReportInfo = new ReportInfo();
         }
 
         public void Scan(string path)
@@ -33,7 +39,7 @@ namespace SafeBoard_Task1
             ReportInfo.EndScanning();
         }
 
-        private string[] GetAllFilesFromDirectory(string path)
+        public string[] GetAllFilesFromDirectory(string path)
         {
             return Directory.GetFiles(path, "*", SearchOption.AllDirectories);
         }

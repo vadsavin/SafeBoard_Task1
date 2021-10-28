@@ -21,6 +21,11 @@ namespace SafeBoard_Task1
             }
         }     
 
+        public ReportInfo()
+        {
+            _reports = new();
+        }
+
         public void AddReport(DetectionReport report)
         {
             _reports.Add(report);

@@ -39,7 +39,7 @@ namespace SafeBoard_Task1
 
         private string GenereteReport(ReportInfo info)
         {
-            var resultBuilder = new StringBuilder("====== Scan result ======");
+            var resultBuilder = new StringBuilder("====== Scan result ======\n");
 
             resultBuilder.AppendLine($"Processed files: {info.GetAmountOfReports()}");
 

@@ -50,14 +50,10 @@ namespace SafeBoard_Task1
                 long length = streamReader.BaseStream.Length;
                 char[] buffer = new char[BufferLength];
 
-                while (offset < length)
+                int bytes = 0;
+                while ((bytes = streamReader.Read(buffer, offset, BufferLength)) > 0)
                 {
-                    int lengthToRead = Math.Min(BufferLength, (int)(length-offset));
-
-                    streamReader.Read(buffer, offset, lengthToRead);
-                    offset += lengthToRead;
-
-                    var result = ScanBlock(buffer, lengthToRead, rulesToScan);
+                    var result = ScanBlock(buffer, bytes, rulesToScan);
                     if (result != null)
                     {
                         return GenerateReport(result);

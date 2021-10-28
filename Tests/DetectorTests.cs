@@ -14,22 +14,37 @@ namespace Tests
         [TestMethod]
         public void CleanTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("test", "test") });
+            var detector = new Detector(new ScannerRule[] { new ScannerRule("testClean", "test") });
             var result = detector.CheckFile(TestsEnviroment.CleanFilePath);
 
-            Assert.AreEqual(result.ReportType, DetectionReportType.Clean);
+            Assert.AreEqual(DetectionReportType.Clean, result.ReportType);
         }
 
         [TestMethod]
         public void JsMalvareTest()
         {
+            var detector = new Detector(new ScannerRule[] { new ScannerRule("testJsMalvare", @".*\.js", @"<script>evil_script()</script>") });
+            var result = detector.CheckFile(TestsEnviroment.JsMalvareFilePath);
 
+            Assert.AreEqual(DetectionReportType.Malvare, result.ReportType);
+        }
+
+        [TestMethod]
+        public void JsMalvareCleanTest()
+        {
+            var detector = new Detector(new ScannerRule[] { new ScannerRule("testJsCleanMalvare", @".*\.js", "<script>evil_script()</script>") });
+            var result = detector.CheckFile(TestsEnviroment.JsMalvareCleanFilePath);
+
+            Assert.AreEqual(DetectionReportType.Clean, result.ReportType);
         }
 
         [TestMethod]
         public void RmTest()
         {
+            var detector = new Detector(new ScannerRule[] { new ScannerRule("RmTest", @"rm -rf %userprofile%\Documents") });
+            var result = detector.CheckFile(TestsEnviroment.RmMalvareFilePath);
 
+            Assert.AreEqual(DetectionReportType.Malvare,result.ReportType);
         }
 
         [TestMethod]
@@ -38,7 +53,7 @@ namespace Tests
             var detector = new Detector(new ScannerRule[] { new ScannerRule("test", "test") });
             var result = detector.CheckFile("NOSUCHFILE.NOFILE");
 
-            Assert.AreEqual(result.ReportType, DetectionReportType.FileNotExists);
+            Assert.AreEqual(DetectionReportType.FileNotExists, result.ReportType);
         }
     }
 }
