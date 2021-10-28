@@ -6,7 +6,10 @@ namespace SafeBoard_Task1
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var result = new ScannerService(args).Run();
+            Console.WriteLine(result);
+
+            Console.ReadKey();
         }
     }
 }
