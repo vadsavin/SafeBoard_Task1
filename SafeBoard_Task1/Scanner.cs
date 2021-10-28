@@ -6,8 +6,10 @@ namespace SafeBoard_Task1
 {
     public class Scanner
     {
+        //Массив правил для поиска вредоносного кода.
         public ScannerRule[] Rules { get; set; }
 
+        //Оъект для хранения результатов сканирования.
         public ReportInfo ReportInfo { get; private set; }
 
         public Scanner()
@@ -21,6 +23,10 @@ namespace SafeBoard_Task1
             Rules = rules;
         }
 
+        /// <summary>
+        /// Запуск работы сканера. Parallel используется для увелечения скорости работы. 
+        /// </summary>
+        /// <param name="path">Директория для поиска.</param>
         public void Scan(string path)
         {
             ReportInfo = new ReportInfo();
@@ -39,6 +45,11 @@ namespace SafeBoard_Task1
             ReportInfo.EndScanning();
         }
 
+        /// <summary>
+        /// Поиск всех файлов в указанной директории и ее поддиректориях
+        /// </summary>
+        /// <param name="path">Директория для поиска.</param>
+        /// <returns>Массив с абсолютными путями к файлам.</returns>
         public string[] GetAllFilesFromDirectory(string path)
         {
             return Directory.GetFiles(path, "*", SearchOption.AllDirectories);

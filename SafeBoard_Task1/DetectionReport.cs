@@ -1,5 +1,8 @@
 ﻿namespace SafeBoard_Task1
 {
+    /// <summary>
+    /// Хранение и доступ к результатам сканирования.
+    /// </summary>
     public class DetectionReport
     {
         public DetectionReportType ReportType { get; }

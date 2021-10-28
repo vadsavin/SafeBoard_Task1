@@ -4,10 +4,16 @@ using System.Linq;
 
 namespace SafeBoard_Task1
 {
+    /// <summary>
+    /// Отвечает за оптимизирование чтение файла и анализ его содержимого.
+    /// </summary>
     public class Detector
     {
         public ScannerRule[] Rules { get; }
 
+        /// <summary>
+        /// Длинна буфера для чтения (байт).
+        /// </summary>
         public int BufferLength { get; set; } = 1024;
 
         public Detector(ScannerRule[] rules)
@@ -15,15 +21,22 @@ namespace SafeBoard_Task1
             Rules = rules;
         }
 
+        /// <summary>
+        /// Проверяет файл на наличие вредоносного кода.
+        /// </summary>
+        /// <param name="filePath">Путь к файлую</param>
+        /// <returns>Отчёт о результате сканирования.</returns>
         public DetectionReport CheckFile(string filePath)
         {
             try
             {
+                //Если файла не существует, возвращаем соответстующий отчет (должно работать быстрее, чем отдельный catch для этой ошибки).
                 if (!File.Exists(filePath))
                 {
                     return new DetectionReport(DetectionReportType.FileNotExists);
                 }
 
+                //Иначе возвращаем результат сканирования.
                 return ScanFile(filePath);
             }
             catch (UnauthorizedAccessException)
@@ -36,8 +49,14 @@ namespace SafeBoard_Task1
             }
         }
 
+        /// <summary>
+        /// Сканирует файл на наличие вредоносного ПО. Сканирование выполеняется последовательно блоками, что оптимизирует использование памяти.
+        /// </summary>
+        /// <param name="filePath">Путь к файлу.</param>
+        /// <returns>Отчёт о сканировании.</returns>
         private DetectionReport ScanFile(string filePath)
         {
+            //Отсечение правил, которые не нужны для обработки файла.
             var rulesToScan = Rules
                 .Where(rule => rule.CheckFileName(Path.GetFileName(filePath)))
                 .Select(rule => new BlockScanInfo(rule))
@@ -50,6 +69,7 @@ namespace SafeBoard_Task1
                 long length = streamReader.BaseStream.Length;
                 char[] buffer = new char[BufferLength];
 
+                //Последовательное чтение фрагментов файла и поиск в них соответсий правилам.
                 int bytes = 0;
                 while ((bytes = streamReader.Read(buffer, offset, BufferLength)) > 0)
                 {
@@ -65,6 +85,13 @@ namespace SafeBoard_Task1
             return new DetectionReport(DetectionReportType.Clean);
         }
 
+        /// <summary>
+        /// Сканирует блок байт на соответствие правилам. Реализаация предусматривает использование предыдщих результатов.
+        /// </summary>
+        /// <param name="buffer">Массив байт для анализа</param>
+        /// <param name="lenght">Количество байт для анализа.</param>
+        /// <param name="lastResult">Предыдщий результат сканирования.</param>
+        /// <returns>Результат сканирования блока.</returns>
         private BlockScanInfo ScanBlock(char[] buffer, int lenght, BlockScanInfo[] lastResult)
         {
             for (int i = 0; i < lenght; i++)

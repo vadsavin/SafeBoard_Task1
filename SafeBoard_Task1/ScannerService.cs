@@ -8,6 +8,7 @@ namespace SafeBoard_Task1
 {
     public class ScannerService
     {
+        //Дефолтные значения правил сканирования, созданные по заданию
         private static readonly ScannerRule[] _defaultRules = new ScannerRule[] 
         { 
             new ScannerRule("JS", @".*\.js", "<script>evil_script()</script>"),
@@ -15,6 +16,9 @@ namespace SafeBoard_Task1
             new ScannerRule("Rundll32", "Rundll32 sus.dll SusEntry")
         };
 
+        /// <summary>
+        /// Директория для сканирования (поддиректории также подвергаются сканированию)
+        /// </summary>
         public string DirectoryToScan { get; set; }
 
         public ScannerService(string[] args)
@@ -29,6 +33,10 @@ namespace SafeBoard_Task1
             }
         }
 
+        /// <summary>
+        /// Запуск сканирования.
+        /// </summary>
+        /// <returns>Строка с результатами скаинрования, отформатированная по заданию.</returns>
         public string Run()
         {
             var scanner = new Scanner(_defaultRules);
@@ -37,6 +45,11 @@ namespace SafeBoard_Task1
             return GenereteReport(scanner.ReportInfo);
         }
 
+        /// <summary>
+        /// Генерирует строку отчёта по результатми сканирования
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns>Строка отчёта</returns>
         private string GenereteReport(ReportInfo info)
         {
             var resultBuilder = new StringBuilder("====== Scan result ======\n");
