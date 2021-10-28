@@ -36,7 +36,7 @@ namespace Tests
             BaseDetectorTest(
                new ScannerRule("testJsCleanMalvare", @".*\.js", "<script>evil_script()</script>"),
                TestsEnviroment.JsMalvareCleanFilePath,
-               DetectionReportType.Clean);
+               DetectionReportType.Skipped);
         }
 
         [TestMethod]

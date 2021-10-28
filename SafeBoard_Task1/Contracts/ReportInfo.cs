@@ -18,6 +18,8 @@ namespace SafeBoard_Task1.Contacts
         private bool _scanInProgress = false;
         private long _bytesRead;
 
+        public ScannerRule[] Rules { get; }
+
         /// <summary>
         /// Возвращает актуальное время сканирования
         /// </summary>
@@ -34,9 +36,15 @@ namespace SafeBoard_Task1.Contacts
 
         public long BytesRead => _bytesRead;
 
-        public ReportInfo()
+        public ReportInfo() : this(new ScannerRule[0])
         {
-            _reports = new();
+
+        }
+
+        public ReportInfo(ScannerRule[] rules)
+        {
+            Rules = rules;
+            _reports = new ConcurrentQueue<DetectionReport>();
         }
 
         /// <summary>

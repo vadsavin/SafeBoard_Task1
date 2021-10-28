@@ -1,8 +1,4 @@
 ﻿using SafeBoard_Task1.Contacts;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SafeBoard_Task1
@@ -14,8 +10,6 @@ namespace SafeBoard_Task1
         public ReportInfo ReportInfo => _reportInfo ?? new ReportInfo();
 
         public int MaxParallelScanningFiles { get; set; } = 10;
-
-        public bool LogSkippedFiles { get; set; } = true;
 
         private ReportInfo _reportInfo;
 
@@ -36,7 +30,7 @@ namespace SafeBoard_Task1
         {
             try
             {
-                _reportInfo = new ReportInfo();
+                _reportInfo = new ReportInfo(Rules);
                 _reportInfo.StartScanning();
 
                 await Task.Run(() => RunScanJob(path));
@@ -54,7 +48,7 @@ namespace SafeBoard_Task1
                 MaxDegreeOfParallelism = MaxParallelScanningFiles 
             };
 
-            var filesEnumerator = GetAllFilesFromDirectory(path);
+            var filesEnumerator = FilesManager.GetAllFilesFromDirectory(path);
 
             Detector detector = new Detector(Rules);
 
@@ -65,44 +59,7 @@ namespace SafeBoard_Task1
         {
             var report = detector.CheckFile(filePath);
 
-            if (report.ReportType == DetectionReportType.Skipped && !LogSkippedFiles)
-            {
-                return;
-            }
-
             _reportInfo.AddReport(report);
-        }
-
-        private IEnumerable<string> GetAllFilesFromDirectory(string path)
-        {
-            var directories = new List<string>() { path };
-
-            while (directories.Any())
-            {
-                var tmp = directories.ToArray();
-                directories.Clear();
-
-                foreach (var directory in tmp)
-                {
-                    foreach (var filePath in GetDirectoryEntries(directory, directories))
-                    {
-                        yield return filePath;
-                    }
-                }
-            }
-        }
-
-        private IEnumerable<string> GetDirectoryEntries(string path, List<string> directories)
-        {
-            try
-            {
-                directories.AddRange(Directory.GetDirectories(path));
-                return Directory.GetFiles(path);
-            }
-            catch
-            {
-                return new string[0];
-            }
         }
     }
 }
