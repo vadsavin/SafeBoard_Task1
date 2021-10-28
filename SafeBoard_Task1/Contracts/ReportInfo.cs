@@ -2,18 +2,21 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
-namespace SafeBoard_Task1
+namespace SafeBoard_Task1.Contacts
 {
     /// <summary>
     /// Отвечает за хранение и доступ к результатм сканирования.
     /// </summary>
     public class ReportInfo
     {
-        private ConcurrentBag<DetectionReport> _reports;
+        private ConcurrentQueue<DetectionReport> _reports;
 
         private DateTime? _startTime;
         private DateTime? _endTime;
+        private bool _scanInProgress = false;
+        private long _bytesRead;
 
         /// <summary>
         /// Возвращает актуальное время сканирования
@@ -25,7 +28,11 @@ namespace SafeBoard_Task1
                 var currentTime = DateTime.Now;
                 return (_endTime ?? currentTime) - (_startTime ?? currentTime);
             }
-        }     
+        }
+
+        public bool ScanInProgress => _scanInProgress;
+
+        public long BytesRead => _bytesRead;
 
         public ReportInfo()
         {
@@ -35,17 +42,15 @@ namespace SafeBoard_Task1
         /// <summary>
         /// Добавляет отчёт о сканировании в сумку.
         /// </summary>
-        /// <param name="report">Отчёт о сканировании.</param>
         public void AddReport(DetectionReport report)
         {
-            _reports.Add(report);
+            _reports.Enqueue(report);
+            IncrementRead(report.BytesRead);
         }
 
         /// <summary>
         /// Поиск отчётов среди всех по определенному типу.  
         /// </summary>
-        /// <param name="type">Тип отчёта.</param>
-        /// <returns>Enumerable отчётов с указанным типом.</returns>
         public IEnumerable<DetectionReport> GetReportsByType(DetectionReportType type)
         {
             return _reports.Where(report => report.ReportType == type);
@@ -54,16 +59,14 @@ namespace SafeBoard_Task1
         /// <summary>
         /// Получть доуступ ко всем отчётам.
         /// </summary>
-        /// <returns>Массив отчётов.</returns>
-        public DetectionReport[] GetAllReports()
+        public IEnumerable<DetectionReport> GetAllReports()
         {
-            return _reports.ToArray();
+            return _reports;
         }
 
         /// <summary>
         /// Посчитать количество отчётов.
         /// </summary>
-        /// <returns>Количество отчётов.</returns>
         public int GetAmountOfReports()
         {
             return _reports.Count;
@@ -72,11 +75,18 @@ namespace SafeBoard_Task1
         public void StartScanning()
         {
             _startTime = DateTime.Now;
+            _scanInProgress = true;
         }
 
         public void EndScanning()
         {
             _endTime = DateTime.Now;
+            _scanInProgress = false;
+        }
+
+        private void IncrementRead(long bytesLength)
+        {
+            Interlocked.Add(ref _bytesRead, bytesLength);
         }
     }
 }

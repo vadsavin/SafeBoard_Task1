@@ -17,4 +17,25 @@
     <ProjectReference Include="..\SafeBoard_Task1\SafeBoard_Task1.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="AffectedFiles\clean.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AffectedFiles\js_clean.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AffectedFiles\js_malvare.clean">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AffectedFiles\js_malvare.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AffectedFiles\rm-rfmalvare.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="AffectedFiles\Rundll32.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

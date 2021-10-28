@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SafeBoard_Task1.Contacts;
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +11,7 @@ namespace SafeBoard_Task1
         //Дефолтные значения правил сканирования, созданные по заданию
         private static readonly ScannerRule[] _defaultRules = new ScannerRule[] 
         { 
-            new ScannerRule("JS", @".*\.js", "<script>evil_script()</script>"),
+            new ScannerRule("JS", @".*\.js\Z", "<script>evil_script()</script>"),
             new ScannerRule("rm -rf", @"rm -rf %userprofile%\Documents"),
             new ScannerRule("Rundll32", "Rundll32 sus.dll SusEntry")
         };
@@ -36,7 +36,6 @@ namespace SafeBoard_Task1
         /// <summary>
         /// Запуск сканирования.
         /// </summary>
-        /// <returns>Строка с результатами скаинрования, отформатированная по заданию.</returns>
         public string Run()
         {
             var scanner = new Scanner(_defaultRules);
@@ -46,11 +45,18 @@ namespace SafeBoard_Task1
         }
 
         /// <summary>
+        /// Запуск сканирования.
+        /// </summary>
+        public Task RunScannerAsync(out Scanner scanner)
+        {
+            scanner = new Scanner(_defaultRules);
+            return scanner.ScanAsync(DirectoryToScan);
+        }
+
+        /// <summary>
         /// Генерирует строку отчёта по результатми сканирования
         /// </summary>
-        /// <param name="info"></param>
-        /// <returns>Строка отчёта</returns>
-        private string GenereteReport(ReportInfo info)
+        public string GenereteReport(ReportInfo info)
         {
             var resultBuilder = new StringBuilder("====== Scan result ======\n");
 
@@ -70,7 +76,7 @@ namespace SafeBoard_Task1
             int allErrorSum = noAccessReports.Count() + noFileReports.Count() + errorReports.Count();
             resultBuilder.AppendLine($"Errors: {allErrorSum}");
 
-            resultBuilder.AppendLine($"Exection time: {info.ScanningTime.ToString(@"hh\:mm\:ss")}");
+            resultBuilder.AppendLine($"Exection time: {info.ScanningTime}");
 
             resultBuilder.AppendLine("=========================");
 

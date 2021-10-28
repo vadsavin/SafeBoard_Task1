@@ -1,58 +1,108 @@
-﻿using System.IO;
-using System.Threading.Tasks;
+﻿using SafeBoard_Task1.Contacts;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace SafeBoard_Task1
 {
     public class Scanner
     {
-        //Массив правил для поиска вредоносного кода.
-        public ScannerRule[] Rules { get; set; }
+        public ScannerRule[] Rules { get; }
 
-        //Оъект для хранения результатов сканирования.
-        public ReportInfo ReportInfo { get; private set; }
+        public ReportInfo ReportInfo => _reportInfo ?? new ReportInfo();
 
-        public Scanner()
-        {
-            ReportInfo = new ReportInfo();
-        }
+        public int MaxParallelScanningFiles { get; set; } = 10;
+
+        public bool LogSkippedFiles { get; set; } = true;
+
+        private ReportInfo _reportInfo;
 
         public Scanner(ScannerRule[] rules)
-            :this()
         {
             Rules = rules;
+        }
+
+        public void Scan(string path)
+        {
+            ScanAsync(path).Wait();
         }
 
         /// <summary>
         /// Запуск работы сканера. Parallel используется для увелечения скорости работы. 
         /// </summary>
-        /// <param name="path">Директория для поиска.</param>
-        public void Scan(string path)
+        public async Task ScanAsync(string path)
         {
-            ReportInfo = new ReportInfo();
-            ReportInfo.StartScanning();
+            try
+            {
+                _reportInfo = new ReportInfo();
+                _reportInfo.StartScanning();
 
-            string[] allFilesPath = GetAllFilesFromDirectory(path);
+                await Task.Run(() => RunScanJob(path));
+            }
+            finally
+            {
+                _reportInfo.EndScanning();
+            }
+        }
+
+        private void RunScanJob(string path)
+        {
+            var parallelOptions = new ParallelOptions() 
+            { 
+                MaxDegreeOfParallelism = MaxParallelScanningFiles 
+            };
+
+            var filesEnumerator = GetAllFilesFromDirectory(path);
 
             Detector detector = new Detector(Rules);
 
-            Parallel.ForEach(allFilesPath, fileName =>
-            {
-                var report = detector.CheckFile(fileName);
-                ReportInfo.AddReport(report);
-            });
-
-            ReportInfo.EndScanning();
+            Parallel.ForEach(filesEnumerator, parallelOptions, filePath => ScanSingleFile(detector, filePath));
         }
 
-        /// <summary>
-        /// Поиск всех файлов в указанной директории и ее поддиректориях
-        /// </summary>
-        /// <param name="path">Директория для поиска.</param>
-        /// <returns>Массив с абсолютными путями к файлам.</returns>
-        public string[] GetAllFilesFromDirectory(string path)
+        private void ScanSingleFile(Detector detector, string filePath)
         {
-            return Directory.GetFiles(path, "*", SearchOption.AllDirectories);
+            var report = detector.CheckFile(filePath);
+
+            if (report.ReportType == DetectionReportType.Skipped && !LogSkippedFiles)
+            {
+                return;
+            }
+
+            _reportInfo.AddReport(report);
+        }
+
+        private IEnumerable<string> GetAllFilesFromDirectory(string path)
+        {
+            var directories = new List<string>() { path };
+
+            while (directories.Any())
+            {
+                var tmp = directories.ToArray();
+                directories.Clear();
+
+                foreach (var directory in tmp)
+                {
+                    foreach (var filePath in GetDirectoryEntries(directory, directories))
+                    {
+                        yield return filePath;
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<string> GetDirectoryEntries(string path, List<string> directories)
+        {
+            try
+            {
+                directories.AddRange(Directory.GetDirectories(path));
+                return Directory.GetFiles(path);
+            }
+            catch
+            {
+                return new string[0];
+            }
         }
     }
 }

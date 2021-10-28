@@ -1,5 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SafeBoard_Task1;
+using SafeBoard_Task1.Contacts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,46 +15,54 @@ namespace Tests
         [TestMethod]
         public void CleanTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("testClean", "test") });
-            var result = detector.CheckFile(TestsEnviroment.CleanFilePath);
-
-            Assert.AreEqual(DetectionReportType.Clean, result.ReportType);
+            BaseDetectorTest(
+               new ScannerRule("testClean", "test"),
+               TestsEnviroment.CleanFilePath,
+               DetectionReportType.Clean);
         }
 
         [TestMethod]
         public void JsMalvareTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("testJsMalvare", @".*\.js", @"<script>evil_script()</script>") });
-            var result = detector.CheckFile(TestsEnviroment.JsMalvareFilePath);
-
-            Assert.AreEqual(DetectionReportType.Malvare, result.ReportType);
+            BaseDetectorTest(
+               new ScannerRule("testJsMalvare", @".*\.js", @"<script>evil_script()</script>"),
+               TestsEnviroment.JsMalvareFilePath,
+               DetectionReportType.Malvare);
         }
 
         [TestMethod]
         public void JsMalvareCleanTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("testJsCleanMalvare", @".*\.js", "<script>evil_script()</script>") });
-            var result = detector.CheckFile(TestsEnviroment.JsMalvareCleanFilePath);
-
-            Assert.AreEqual(DetectionReportType.Clean, result.ReportType);
+            BaseDetectorTest(
+               new ScannerRule("testJsCleanMalvare", @".*\.js", "<script>evil_script()</script>"),
+               TestsEnviroment.JsMalvareCleanFilePath,
+               DetectionReportType.Clean);
         }
 
         [TestMethod]
         public void RmTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("RmTest", @"rm -rf %userprofile%\Documents") });
-            var result = detector.CheckFile(TestsEnviroment.RmMalvareFilePath);
-
-            Assert.AreEqual(DetectionReportType.Malvare,result.ReportType);
+            BaseDetectorTest(
+               new ScannerRule("RmTest", @"rm -rf %userprofile%\Documents"),
+               TestsEnviroment.RmMalvareFilePath,
+               DetectionReportType.Malvare);
         }
 
         [TestMethod]
         public void FileNotExistsTest()
         {
-            var detector = new Detector(new ScannerRule[] { new ScannerRule("test", "test") });
-            var result = detector.CheckFile("NOSUCHFILE.NOFILE");
+            BaseDetectorTest(
+                new ScannerRule("test", "test"),
+                "NOSUCHFILE.NOFILE",
+                DetectionReportType.FileNotExists);
+        }
 
-            Assert.AreEqual(DetectionReportType.FileNotExists, result.ReportType);
+        private void BaseDetectorTest(ScannerRule rule, string filePath, DetectionReportType expected)
+        {
+            var detector = new Detector(new ScannerRule[] { rule });
+            var result = detector.CheckFile(filePath);
+
+            Assert.AreEqual(expected, result.ReportType);
         }
     }
 }

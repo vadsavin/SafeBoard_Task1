@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SafeBoard_Task1.Contacts;
+using System;
 using System.IO;
 using System.Linq;
 
@@ -14,7 +15,7 @@ namespace SafeBoard_Task1
         /// <summary>
         /// Длинна буфера для чтения (байт).
         /// </summary>
-        public int BufferLength { get; set; } = 1024;
+        public int BufferLength { get; set; } = 1024 * 1024 * 1;
 
         public Detector(ScannerRule[] rules)
         {
@@ -22,45 +23,46 @@ namespace SafeBoard_Task1
         }
 
         /// <summary>
-        /// Проверяет файл на наличие вредоносного кода.
+        /// Проверяет файл на соответствие правилам.
         /// </summary>
-        /// <param name="filePath">Путь к файлую</param>
-        /// <returns>Отчёт о результате сканирования.</returns>
         public DetectionReport CheckFile(string filePath)
         {
             try
             {
-                //Если файла не существует, возвращаем соответстующий отчет (должно работать быстрее, чем отдельный catch для этой ошибки).
                 if (!File.Exists(filePath))
                 {
-                    return new DetectionReport(DetectionReportType.FileNotExists);
+                    return new DetectionReport(filePath, DetectionReportType.FileNotExists);
                 }
 
-                //Иначе возвращаем результат сканирования.
                 return ScanFile(filePath);
             }
             catch (UnauthorizedAccessException)
             {
-                return new DetectionReport(DetectionReportType.NoAccess);
+                return new DetectionReport(filePath, DetectionReportType.NoAccess);
             }
             catch (Exception e)
             {
-                return new DetectionReport(DetectionReportType.Error, e.Message);
+                return new DetectionReport(filePath, DetectionReportType.Error, e.Message);
             }
         }
 
         /// <summary>
         /// Сканирует файл на наличие вредоносного ПО. Сканирование выполеняется последовательно блоками, что оптимизирует использование памяти.
         /// </summary>
-        /// <param name="filePath">Путь к файлу.</param>
-        /// <returns>Отчёт о сканировании.</returns>
         private DetectionReport ScanFile(string filePath)
         {
+            int allBytesRead = 0;
+
             //Отсечение правил, которые не нужны для обработки файла.
             var rulesToScan = Rules
                 .Where(rule => rule.CheckFileName(Path.GetFileName(filePath)))
                 .Select(rule => new BlockScanInfo(rule))
                 .ToArray();
+
+            if (rulesToScan.Length == 0)
+            {
+                return new DetectionReport(filePath, DetectionReportType.Skipped, allBytesRead);
+            }
 
             using (var file = File.OpenRead(filePath))
             using (var streamReader = new StreamReader(file))
@@ -70,28 +72,25 @@ namespace SafeBoard_Task1
                 char[] buffer = new char[BufferLength];
 
                 //Последовательное чтение фрагментов файла и поиск в них соответсий правилам.
-                int bytes = 0;
-                while ((bytes = streamReader.Read(buffer, offset, BufferLength)) > 0)
+                int bytesRead = 0;
+                while ((bytesRead = streamReader.Read(buffer, offset, BufferLength)) > 0)
                 {
-                    var result = ScanBlock(buffer, bytes, rulesToScan);
+                    allBytesRead += bytesRead;
+
+                    var result = ScanBlock(buffer, bytesRead, rulesToScan);
                     if (result != null)
                     {
-                        return GenerateReport(result);
+                        return GenerateReport(filePath, result, allBytesRead);
                     }
                 }
-                
             }
 
-            return new DetectionReport(DetectionReportType.Clean);
+            return new DetectionReport(filePath, DetectionReportType.Clean, allBytesRead);
         }
 
         /// <summary>
         /// Сканирует блок байт на соответствие правилам. Реализаация предусматривает использование предыдщих результатов.
         /// </summary>
-        /// <param name="buffer">Массив байт для анализа</param>
-        /// <param name="lenght">Количество байт для анализа.</param>
-        /// <param name="lastResult">Предыдщий результат сканирования.</param>
-        /// <returns>Результат сканирования блока.</returns>
         private BlockScanInfo ScanBlock(char[] buffer, int lenght, BlockScanInfo[] lastResult)
         {
             for (int i = 0; i < lenght; i++)
@@ -118,9 +117,9 @@ namespace SafeBoard_Task1
             return null;
         }
 
-        private DetectionReport GenerateReport(BlockScanInfo info)
+        private DetectionReport GenerateReport(string filePath, BlockScanInfo info, long bytesRead)
         {
-            return new DetectionReport(DetectionReportType.Malvare, info.Rule);
+            return new DetectionReport(filePath, DetectionReportType.Malvare, info.Rule, bytesRead);
         }
     }
 }

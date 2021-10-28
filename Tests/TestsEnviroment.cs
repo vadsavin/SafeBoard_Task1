@@ -4,7 +4,8 @@ namespace Tests
 {
     public class TestsEnviroment
     {
-        public static string AffectedDirectory      => Path.Combine(Directory.GetCurrentDirectory(), "../../../AffectedFiles");
+        public static string AffectedDirectory      => Path.Combine(Directory.GetCurrentDirectory(), "AffectedFiles");
+
         public static string CleanFilePath          => Path.Combine(AffectedDirectory, "clean.txt");
         public static string JsCleanFilePath        => Path.Combine(AffectedDirectory, "js_clean.js");
         public static string JsMalvareCleanFilePath => Path.Combine(AffectedDirectory, "js_malvare.clean");

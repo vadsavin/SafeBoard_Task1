@@ -1,4 +1,4 @@
-﻿namespace SafeBoard_Task1
+﻿namespace SafeBoard_Task1.Contacts
 {
     public class BlockScanInfo
     {
@@ -18,7 +18,6 @@
         /// <summary>
         /// Возвращает текущий символ для проверки со строкой вредоносного кода из правила.
         /// </summary>
-        /// <returns></returns>
         public char GetCurrentSymbol()
         {
             return Rule.MalvareString[Offset];
