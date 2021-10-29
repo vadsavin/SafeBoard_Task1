@@ -53,7 +53,7 @@ namespace SafeBoard_Task1.Contacts
         public void AddReport(DetectionReport report)
         {
             _reports.Enqueue(report);
-            IncrementRead(report.BytesRead);
+            IncrementReadBytes(report.BytesRead);
         }
 
         /// <summary>
@@ -64,17 +64,11 @@ namespace SafeBoard_Task1.Contacts
             return _reports.Where(report => report.ReportType == type);
         }
 
-        /// <summary>
-        /// Получть доуступ ко всем отчётам.
-        /// </summary>
         public IEnumerable<DetectionReport> GetAllReports()
         {
             return _reports;
         }
 
-        /// <summary>
-        /// Посчитать количество отчётов.
-        /// </summary>
         public int GetAmountOfReports()
         {
             return _reports.Count;
@@ -92,7 +86,7 @@ namespace SafeBoard_Task1.Contacts
             _scanInProgress = false;
         }
 
-        private void IncrementRead(long bytesLength)
+        private void IncrementReadBytes(long bytesLength)
         {
             Interlocked.Add(ref _bytesRead, bytesLength);
         }

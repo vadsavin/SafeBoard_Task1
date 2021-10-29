@@ -34,7 +34,7 @@ namespace SafeBoard_Task1
         /// <summary>
         /// Запуск сканирования.
         /// </summary>
-        public string Run()
+        public string RunScanner()
         {
             var scanner = new Scanner(_defaultRules);
             scanner.Scan(DirectoryToScan);
